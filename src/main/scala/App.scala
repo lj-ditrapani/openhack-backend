@@ -27,5 +27,37 @@ class Server extends Http4sDsl[IO] {
       static("index.html", request)
     case request @ GET -> Root / "js" / file =>
       static(s"js/$file", request)
+    case GET -> Root / "list" =>
+      Ok(FakeList.list)
+    case POST -> Root / "add" =>
+      Ok("Adding new node")
+    case DELETE -> Root / nameIP =>
+      Ok(s"Deleting $nameIP")
   }
+}
+
+object FakeList {
+  val list = """[
+  {
+    "name": "tenant1",
+    "endpoints": {
+      "minecraft": "128.124.90.15:25565",
+      "rcon": "128.124.90.15:25575"
+    }
+  },
+  {
+    "name": "tenant2",
+    "endpoints": {
+      "minecraft": "128.194.90.16:25565",
+      "rcon": "128.194.90.16:25575"
+    }
+  },
+  {
+    "name": "tenant3",
+    "endpoints": {
+      "minecraft": "128.194.90.15:25565",
+      "rcon": "128.194.90.15:25575"
+    }
+  }
+]"""
 }
