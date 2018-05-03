@@ -109,5 +109,7 @@ class Server extends Http4sDsl[IO] {
       .endTemplate()
       .endSpec()
       .build()
+    client.extensions().deployments().inNamespace("default").create(deployment)
+    (): Unit
   }
 }
