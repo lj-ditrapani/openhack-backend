@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
+import io.fabric8.kubernetes.api.model.ServiceBuilder
 import org.json4s.JArray
 import org.json4s.native.JsonMethods.{compact, render}
 
@@ -78,9 +79,10 @@ class Server extends Http4sDsl[IO] {
 
   def addNode(): Unit = {
     count += 1
+    val name = s"mc-$count"
     val deployment = new DeploymentBuilder()
       .withNewMetadata()
-      .withName(s"mc-$count")
+      .withName(name)
       .endMetadata()
       .withNewSpec()
       .withReplicas(1)
@@ -110,6 +112,12 @@ class Server extends Http4sDsl[IO] {
       .endSpec()
       .build()
     client.extensions().deployments().inNamespace("default").create(deployment)
+    val service = new ServiceBuilder()
+      .withNewMetadata()
+      .withName(name)
+      .endMetadata()
+      .withNewSpec()
+      .endSpec()
     (): Unit
   }
 }
