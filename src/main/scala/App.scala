@@ -8,6 +8,8 @@ import org.http4s.server.blaze.BlazeBuilder
 import scala.concurrent.ExecutionContext
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import org.json4s.JArray
+import org.json4s.native.JsonMethods.{compact, render}
 
 object Main extends StreamApp[IO] {
   def stream(args: List[String], requestShutdown: IO[Unit]) = {
@@ -41,8 +43,14 @@ class Server extends Http4sDsl[IO] {
     case request @ GET -> Root / "js" / file =>
       static(s"js/$file", request)
     case GET -> Root / "list" =>
-      getServerList()
-      Ok(FakeList.list)
+      import org.json4s.JsonDSL._
+      val json = getServerList().map(
+        mc =>
+          ("name" -> mc.name) ~
+            ("endpoints" ->
+              (("minecraft" -> s"${mc.ip}:25565") ~
+                ("rcon" -> s"${mc.ip}:25575"))))
+      Ok(compact(render(JArray(json))))
     case POST -> Root / "add" =>
       Ok("Adding new node")
     case DELETE -> Root / nameIP =>
