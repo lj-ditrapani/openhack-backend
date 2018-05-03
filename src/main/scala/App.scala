@@ -18,6 +18,8 @@ object Main extends StreamApp[IO] {
   }
 }
 
+final case class Minecraft(name: String, ip: String)
+
 class Server extends Http4sDsl[IO] {
   private val client = {
     val config = new ConfigBuilder()
@@ -30,7 +32,25 @@ class Server extends Http4sDsl[IO] {
 
   println(client.namespaces().list())
   println("\n-------------\n\n")
-  println(client.pods().list())
+  import scala.collection.JavaConverters._
+  val items = client.services().list().getItems().asScala
+  items
+    .map(service => {
+      val name = service.getMetadata().getName()
+      val ingresses = service.getStatus().getLoadBalancer().getIngress()
+      (name, ingresses)
+    })
+    .filter(pair => pair._2.size > 0)
+    .map(pair => Minecraft(pair._1, pair._2.get(0).getIp()))
+  for (service <- items) {
+    println("\n[-------------]\n\n")
+    val x = service.getMetadata().getName()
+    val y = service.getStatus().getLoadBalancer().getIngress()
+    println(x)
+    println(y)
+  }
+  // metadata name
+  // status loadBalancer ingress [ip]
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   def static(file: String, request: Request[IO]): IO[Response[IO]] =
