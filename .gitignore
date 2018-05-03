@@ -1,0 +1,9 @@
+/target
+/project/target
+/project/project/target
+/shared/.jvm/target
+/shared/.js/target
+/server/target
+/client/target
+/node_modules
+/server/src/main/resources/js
