@@ -28,6 +28,10 @@ class Server extends Http4sDsl[IO] {
     new DefaultKubernetesClient(config)
   }
 
+  println(client.namespaces().list())
+  println("\n-------------\n\n")
+  println(client.pods().list())
+
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   def static(file: String, request: Request[IO]): IO[Response[IO]] =
     StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
