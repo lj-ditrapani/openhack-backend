@@ -60,8 +60,8 @@ class Server extends Http4sDsl[IO] {
     case POST -> Root / "add" =>
       addNode()
       Ok("Adding new node")
-    case DELETE -> Root / nameIP =>
-      Ok(s"Deleting $nameIP")
+    case DELETE -> Root / name =>
+      Ok(s"Deleting $name")
   }
 
   def getServerList(): List[Minecraft] = {
@@ -91,7 +91,7 @@ class Server extends Http4sDsl[IO] {
       .withReplicas(1)
       .withNewTemplate()
       .withNewMetadata()
-      .addToLabels("app", "minecraft")
+      .addToLabels("app", name)
       .endMetadata()
       .withNewSpec()
       .addNewContainer()
@@ -122,10 +122,12 @@ class Server extends Http4sDsl[IO] {
       .withNewSpec()
       .withType("LoadBalancer")
       .addNewPort()
+      .withPort(25565)
       .withTargetPort(new IntOrString(25565))
       .withName("game")
       .endPort()
       .addNewPort()
+      .withPort(25575)
       .withTargetPort(new IntOrString(25575))
       .withName("rcon")
       .endPort()
