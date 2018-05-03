@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.ServiceBuilder
 import org.json4s.JArray
 import org.json4s.native.JsonMethods.{compact, render}
+import io.fabric8.kubernetes.api.model.IntOrString
 
 object Main extends StreamApp[IO] {
   def stream(args: List[String], requestShutdown: IO[Unit]) = {
@@ -80,6 +81,8 @@ class Server extends Http4sDsl[IO] {
   def addNode(): Unit = {
     count += 1
     val name = s"mc-$count"
+    import scala.collection.JavaConverters._
+    val selector = Map("app" -> name).asJava
     val deployment = new DeploymentBuilder()
       .withNewMetadata()
       .withName(name)
@@ -117,7 +120,18 @@ class Server extends Http4sDsl[IO] {
       .withName(name)
       .endMetadata()
       .withNewSpec()
+      .withType("LoadBalancer")
+      .addNewPort()
+      .withTargetPort(new IntOrString(25565))
+      .withName("game")
+      .endPort()
+      .addNewPort()
+      .withTargetPort(new IntOrString(25575))
+      .withName("rcon")
+      .endPort()
+      .withSelector(selector)
       .endSpec()
+    // client.extensions().services().inNamespace("default").create(service)
     (): Unit
   }
 }
