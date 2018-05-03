@@ -31,9 +31,9 @@ class Server extends Http4sDsl[IO] {
 
   private val client = {
     val config = new ConfigBuilder()
-      .withOauthToken("44a9cc2e9def072af95cace024b393c2")
+      .withOauthToken("e8be1230840c7071c06eb1c72e01698c")
       .withMasterUrl(
-        "https://akscluster-amstradcpc-198f62-0d9ac1c4.hcp.eastus.azmk8s.io")
+        "https://lipikaclus-lipikaresourcegr-198f62-bee76327.hcp.eastus.azmk8s.io")
       .build()
     new DefaultKubernetesClient(config)
   }
@@ -61,8 +61,8 @@ class Server extends Http4sDsl[IO] {
       addNode()
       Ok("Adding new node")
     case DELETE -> Root / name =>
-      client.services().inNamespace("default").withName(name).delete()
-      client.pods().inNamespace("default").withName(name).delete()
+      client.services().withName(name).delete()
+      client.extensions().deployments().withName(name).delete()
       Ok(s"Deleting $name")
   }
 
