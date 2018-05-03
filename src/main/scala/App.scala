@@ -8,6 +8,7 @@ import org.http4s.server.blaze.BlazeBuilder
 import scala.concurrent.ExecutionContext
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
 import org.json4s.JArray
 import org.json4s.native.JsonMethods.{compact, render}
 
@@ -23,6 +24,9 @@ object Main extends StreamApp[IO] {
 final case class Minecraft(name: String, ip: String)
 
 class Server extends Http4sDsl[IO] {
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  private var count = new scala.util.Random().nextInt()
+
   private val client = {
     val config = new ConfigBuilder()
       .withOauthToken("44a9cc2e9def072af95cace024b393c2")
@@ -52,6 +56,7 @@ class Server extends Http4sDsl[IO] {
                 ("rcon" -> s"${mc.ip}:25575"))))
       Ok(compact(render(JArray(json))))
     case POST -> Root / "add" =>
+      addNode()
       Ok("Adding new node")
     case DELETE -> Root / nameIP =>
       Ok(s"Deleting $nameIP")
@@ -70,30 +75,27 @@ class Server extends Http4sDsl[IO] {
       .map(pair => Minecraft(pair._1, pair._2.get(0).getIp()))
       .toList
   }
-}
 
-object FakeList {
-  val list = """[
-  {
-    "name": "tenant1",
-    "endpoints": {
-      "minecraft": "128.124.90.15:25565",
-      "rcon": "128.124.90.15:25575"
-    }
-  },
-  {
-    "name": "tenant2",
-    "endpoints": {
-      "minecraft": "128.194.90.16:25565",
-      "rcon": "128.194.90.16:25575"
-    }
-  },
-  {
-    "name": "tenant3",
-    "endpoints": {
-      "minecraft": "128.194.90.15:25565",
-      "rcon": "128.194.90.15:25575"
-    }
+  def addNode(): Unit = {
+    count += 1
+    val deployment = new DeploymentBuilder()
+      .withNewMetadata()
+      .withName(s"mc-$count")
+      .endMetadata()
+      .withNewSpec()
+      .withReplicas(1)
+      .withNewTemplate()
+      .withNewSpec()
+      .addNewContainer()
+      .withName("minecraft")
+      .withImage("openhack/minecraft-server:2.0")
+      .addNewPort()
+      .withContainerPort(25565)
+      .endPort()
+      .endContainer()
+      .endSpec()
+      .endTemplate()
+      .endSpec()
+      .build()
   }
-]"""
 }
