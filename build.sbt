@@ -23,6 +23,8 @@ val circeVersion = "0.9.3"
 val Http4sVersion = "0.18.9"
 
 libraryDependencies ++= Seq(
+  "io.fabric8" % "kubernetes-client" % "3.1.11",
+  "io.fabric8" % "kubernetes-model" % "2.0.9",
   "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
   "org.http4s" %% "http4s-dsl" % Http4sVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.3",
