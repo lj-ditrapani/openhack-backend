@@ -30,28 +30,6 @@ class Server extends Http4sDsl[IO] {
     new DefaultKubernetesClient(config)
   }
 
-  println(client.namespaces().list())
-  println("\n-------------\n\n")
-  import scala.collection.JavaConverters._
-  val items = client.services().list().getItems().asScala
-  items
-    .map(service => {
-      val name = service.getMetadata().getName()
-      val ingresses = service.getStatus().getLoadBalancer().getIngress()
-      (name, ingresses)
-    })
-    .filter(pair => pair._2.size > 0)
-    .map(pair => Minecraft(pair._1, pair._2.get(0).getIp()))
-  for (service <- items) {
-    println("\n[-------------]\n\n")
-    val x = service.getMetadata().getName()
-    val y = service.getStatus().getLoadBalancer().getIngress()
-    println(x)
-    println(y)
-  }
-  // metadata name
-  // status loadBalancer ingress [ip]
-
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   def static(file: String, request: Request[IO]): IO[Response[IO]] =
     StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
@@ -63,11 +41,26 @@ class Server extends Http4sDsl[IO] {
     case request @ GET -> Root / "js" / file =>
       static(s"js/$file", request)
     case GET -> Root / "list" =>
+      getServerList()
       Ok(FakeList.list)
     case POST -> Root / "add" =>
       Ok("Adding new node")
     case DELETE -> Root / nameIP =>
       Ok(s"Deleting $nameIP")
+  }
+
+  def getServerList(): List[Minecraft] = {
+    import scala.collection.JavaConverters._
+    val items = client.services().list().getItems().asScala
+    items
+      .map(service => {
+        val name = service.getMetadata().getName()
+        val ingresses = service.getStatus().getLoadBalancer().getIngress()
+        (name, ingresses)
+      })
+      .filter(pair => pair._2.size > 0)
+      .map(pair => Minecraft(pair._1, pair._2.get(0).getIp()))
+      .toList
   }
 }
 
