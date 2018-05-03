@@ -131,7 +131,8 @@ class Server extends Http4sDsl[IO] {
       .endPort()
       .withSelector(selector)
       .endSpec()
-    // client.extensions().services().inNamespace("default").create(service)
+      .build()
+    client.services().inNamespace("default").create(service)
     (): Unit
   }
 }
